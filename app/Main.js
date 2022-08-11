@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { useImmerReducer } from "use-immer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CSSTransition } from "react-transition-group";
 import Axios from "axios";
 Axios.defaults.baseURL = "http://localhost:8080";
 
@@ -22,6 +23,7 @@ import FlashMessages from "./components/FlashMessages";
 import Profile from "./components/Profile";
 import EditPost from "./components/EditPost";
 import NotFound from "./components/NotFound";
+import Search from "./components/Search";
 
 function Main() {
 	const initialState = {
@@ -32,6 +34,7 @@ function Main() {
 			username: localStorage.getItem("complexAppUsername"),
 			avatar: localStorage.getItem("complexAppAvatar"),
 		},
+		isSearchOpen: false,
 	};
 
 	function ourReducer(draft, action) {
@@ -45,6 +48,12 @@ function Main() {
 				break;
 			case "flashMessage":
 				draft.flashMessages.push(action.value);
+				break;
+			case "openSearch":
+				draft.isSearchOpen = true;
+				break;
+			case "closeSearch":
+				draft.isSearchOpen = false;
 				break;
 		}
 	}
@@ -80,6 +89,9 @@ function Main() {
 						{/* Must be last */}
 						<Route path="*" element={<NotFound />} />
 					</Routes>
+					<CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
+						<Search />
+					</CSSTransition>
 					<Footer />
 				</BrowserRouter>
 			</DispatchContext.Provider>
@@ -87,7 +99,7 @@ function Main() {
 	);
 }
 
-const root = ReactDOM.createRoot(document.querySelector("#app"));
+const root = ReactDOM.createRoot(document.getElementById("app"));
 root.render(<Main />);
 
 if (module.hot) {
