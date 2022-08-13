@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useReducer, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { useImmerReducer } from "use-immer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -6,11 +6,10 @@ import { CSSTransition } from "react-transition-group";
 import Axios from "axios";
 Axios.defaults.baseURL = "http://localhost:8080";
 
-// Context
 import StateContext from "./StateContext";
 import DispatchContext from "./DispatchContext";
 
-// Custom Components
+// My Components
 import Header from "./components/Header";
 import HomeGuest from "./components/HomeGuest";
 import Home from "./components/Home";
@@ -27,12 +26,12 @@ import Search from "./components/Search";
 
 function Main() {
 	const initialState = {
-		loggedIn: Boolean(localStorage.getItem("complexAppToken")),
+		loggedIn: Boolean(localStorage.getItem("complexappToken")),
 		flashMessages: [],
 		user: {
-			token: localStorage.getItem("complexAppToken"),
-			username: localStorage.getItem("complexAppUsername"),
-			avatar: localStorage.getItem("complexAppAvatar"),
+			token: localStorage.getItem("complexappToken"),
+			username: localStorage.getItem("complexappUsername"),
+			avatar: localStorage.getItem("complexappAvatar"),
 		},
 		isSearchOpen: false,
 	};
@@ -42,19 +41,19 @@ function Main() {
 			case "login":
 				draft.loggedIn = true;
 				draft.user = action.data;
-				break;
+				return;
 			case "logout":
 				draft.loggedIn = false;
-				break;
+				return;
 			case "flashMessage":
 				draft.flashMessages.push(action.value);
-				break;
+				return;
 			case "openSearch":
 				draft.isSearchOpen = true;
-				break;
+				return;
 			case "closeSearch":
 				draft.isSearchOpen = false;
-				break;
+				return;
 		}
 	}
 
@@ -62,13 +61,13 @@ function Main() {
 
 	useEffect(() => {
 		if (state.loggedIn) {
-			localStorage.setItem("complexAppToken", state.user.token);
-			localStorage.setItem("complexAppUsername", state.user.username);
-			localStorage.setItem("complexAppAvatar", state.user.avatar);
+			localStorage.setItem("complexappToken", state.user.token);
+			localStorage.setItem("complexappUsername", state.user.username);
+			localStorage.setItem("complexappAvatar", state.user.avatar);
 		} else {
-			localStorage.removeItem("complexAppToken");
-			localStorage.removeItem("complexAppUsername");
-			localStorage.removeItem("complexAppAvatar");
+			localStorage.removeItem("complexappToken");
+			localStorage.removeItem("complexappUsername");
+			localStorage.removeItem("complexappAvatar");
 		}
 	}, [state.loggedIn]);
 
@@ -76,17 +75,16 @@ function Main() {
 		<StateContext.Provider value={state}>
 			<DispatchContext.Provider value={dispatch}>
 				<BrowserRouter>
-					<FlashMessages />
+					<FlashMessages messages={state.flashMessages} />
 					<Header />
 					<Routes>
-						<Route path="/profile/:username" element={<Profile />} />
+						<Route path="/profile/:username/*" element={<Profile />} />
 						<Route path="/" element={state.loggedIn ? <Home /> : <HomeGuest />} />
 						<Route path="/post/:id" element={<ViewSinglePost />} />
 						<Route path="/post/:id/edit" element={<EditPost />} />
 						<Route path="/create-post" element={<CreatePost />} />
 						<Route path="/about-us" element={<About />} />
 						<Route path="/terms" element={<Terms />} />
-						{/* Must be last */}
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 					<CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
@@ -99,7 +97,7 @@ function Main() {
 	);
 }
 
-const root = ReactDOM.createRoot(document.getElementById("app"));
+const root = ReactDOM.createRoot(document.querySelector("#app"));
 root.render(<Main />);
 
 if (module.hot) {

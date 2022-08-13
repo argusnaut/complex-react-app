@@ -1,10 +1,10 @@
-import React, { useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
-import ReactTooltip from "react-tooltip";
 import DispatchContext from "../DispatchContext";
 import StateContext from "../StateContext";
+import ReactTooltip from "react-tooltip";
 
-function HeaderLoggedIn() {
+function HeaderLoggedIn(props) {
 	const appDispatch = useContext(DispatchContext);
 	const appState = useContext(StateContext);
 
@@ -19,7 +19,7 @@ function HeaderLoggedIn() {
 
 	return (
 		<div className="flex-row my-3 my-md-0">
-			<a data-for="search" data-tip="Search" onClick={handleSearchIcon} className="text-white mr-2 header-search-icon">
+			<a data-for="search" data-tip="Search" onClick={handleSearchIcon} href="#" className="text-white mr-2 header-search-icon">
 				<i className="fas fa-search"></i>
 			</a>
 			<ReactTooltip place="bottom" id="search" className="custom-tooltip" />{" "}

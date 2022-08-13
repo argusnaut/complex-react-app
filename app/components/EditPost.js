@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useImmerReducer } from "use-immer";
+import Page from "./Page";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Axios from "axios";
-import Page from "./Page";
-import NotFound from "./NotFound";
 import LoadingDotsIcon from "./LoadingDotsIcon";
 import StateContext from "../StateContext";
 import DispatchContext from "../DispatchContext";
+import NotFound from "./NotFound";
 
-function EditPost() {
+function EditPost(props) {
 	const navigate = useNavigate();
 	const appState = useContext(StateContext);
 	const appDispatch = useContext(DispatchContext);
@@ -37,41 +37,41 @@ function EditPost() {
 				draft.title.value = action.value.title;
 				draft.body.value = action.value.body;
 				draft.isFetching = false;
-				break;
+				return;
 			case "titleChange":
 				draft.title.hasErrors = false;
 				draft.title.value = action.value;
-				break;
+				return;
 			case "bodyChange":
 				draft.body.hasErrors = false;
 				draft.body.value = action.value;
-				break;
+				return;
 			case "submitRequest":
 				if (!draft.title.hasErrors && !draft.body.hasErrors) {
 					draft.sendCount++;
 				}
-				break;
+				return;
 			case "saveRequestStarted":
 				draft.isSaving = true;
-				break;
+				return;
 			case "saveRequestFinished":
 				draft.isSaving = false;
-				break;
+				return;
 			case "titleRules":
 				if (!action.value.trim()) {
 					draft.title.hasErrors = true;
 					draft.title.message = "You must provide a title.";
 				}
-				break;
+				return;
 			case "bodyRules":
 				if (!action.value.trim()) {
 					draft.body.hasErrors = true;
 					draft.body.message = "You must provide body content.";
 				}
-				break;
+				return;
 			case "notFound":
 				draft.notFound = true;
-				break;
+				return;
 		}
 	}
 
@@ -92,14 +92,15 @@ function EditPost() {
 				if (response.data) {
 					dispatch({ type: "fetchComplete", value: response.data });
 					if (appState.user.username != response.data.author.username) {
-						appDispatch({ type: "flashMessage", value: "You do not have permisson to edit that post." });
+						appDispatch({ type: "flashMessage", value: "You do not have permission to edit that post." });
+						// redirect to homepage
 						navigate("/");
 					}
 				} else {
 					dispatch({ type: "notFound" });
 				}
-			} catch (error) {
-				console.log("There was a problem.");
+			} catch (e) {
+				console.log("There was a problem or the request was cancelled.");
 			}
 		}
 		fetchPost();
@@ -117,8 +118,8 @@ function EditPost() {
 					const response = await Axios.post(`/post/${state.id}/edit`, { title: state.title.value, body: state.body.value, token: appState.user.token }, { cancelToken: ourRequest.token });
 					dispatch({ type: "saveRequestFinished" });
 					appDispatch({ type: "flashMessage", value: "Post was updated." });
-				} catch (error) {
-					console.log("There was a problem.");
+				} catch (e) {
+					console.log("There was a problem or the request was cancelled.");
 				}
 			}
 			fetchPost();
@@ -132,18 +133,17 @@ function EditPost() {
 		return <NotFound />;
 	}
 
-	if (state.isFetching) {
+	if (state.isFetching)
 		return (
 			<Page title="...">
 				<LoadingDotsIcon />
 			</Page>
 		);
-	}
 
 	return (
 		<Page title="Edit Post">
 			<Link className="small font-weight-bold" to={`/post/${state.id}`}>
-				&laquo; Back to post
+				&laquo; Back to post permalink
 			</Link>
 
 			<form className="mt-3" onSubmit={submitHandler}>
@@ -159,7 +159,7 @@ function EditPost() {
 					<label htmlFor="post-body" className="text-muted mb-1 d-block">
 						<small>Body Content</small>
 					</label>
-					<textarea onBlur={(e) => dispatch({ type: "bodyRules", value: e.target.value })} onChange={(e) => dispatch({ type: "bodyChange", value: e.target.value })} value={state.body.value} name="body" id="post-body" className="body-content tall-textarea form-control" type="text" />
+					<textarea onBlur={(e) => dispatch({ type: "bodyRules", value: e.target.value })} onChange={(e) => dispatch({ type: "bodyChange", value: e.target.value })} name="body" id="post-body" className="body-content tall-textarea form-control" type="text" value={state.body.value} />
 					{state.body.hasErrors && <div className="alert alert-danger small liveValidateMessage">{state.body.message}</div>}
 				</div>
 

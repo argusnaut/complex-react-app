@@ -1,32 +1,32 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import Page from "./Page";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Axios from "axios";
+import LoadingDotsIcon from "./LoadingDotsIcon";
 import ReactMarkdown from "react-markdown";
 import ReactTooltip from "react-tooltip";
-import Page from "./Page";
 import NotFound from "./NotFound";
-import LoadingDotsIcon from "./LoadingDotsIcon";
 import StateContext from "../StateContext";
 import DispatchContext from "../DispatchContext";
 
-function ViewSinglePost() {
+function ViewSinglePost(props) {
+	const navigate = useNavigate();
 	const appState = useContext(StateContext);
 	const appDispatch = useContext(DispatchContext);
-	const navigate = useNavigate();
-
 	const { id } = useParams();
 	const [isLoading, setIsLoading] = useState(true);
 	const [post, setPost] = useState();
 
 	useEffect(() => {
 		const ourRequest = Axios.CancelToken.source();
+
 		async function fetchPost() {
 			try {
 				const response = await Axios.get(`/post/${id}`, { cancelToken: ourRequest.token });
 				setPost(response.data);
 				setIsLoading(false);
-			} catch (error) {
-				console.log("There was a problem.");
+			} catch (e) {
+				console.log("There was a problem or the request was cancelled.");
 			}
 		}
 		fetchPost();
@@ -39,13 +39,12 @@ function ViewSinglePost() {
 		return <NotFound />;
 	}
 
-	if (isLoading) {
+	if (isLoading)
 		return (
 			<Page title="...">
 				<LoadingDotsIcon />
 			</Page>
 		);
-	}
 
 	const date = new Date(post.createdDate);
 	const dateFormatted = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
@@ -63,10 +62,13 @@ function ViewSinglePost() {
 			try {
 				const response = await Axios.delete(`/post/${id}`, { data: { token: appState.user.token } });
 				if (response.data == "Success") {
+					// 1. display a flash message
 					appDispatch({ type: "flashMessage", value: "Post was successfully deleted." });
+
+					// 2. redirect back to the current user's profile
 					navigate(`/profile/${appState.user.username}`);
 				}
-			} catch (error) {
+			} catch (e) {
 				console.log("There was a problem.");
 			}
 		}
@@ -91,14 +93,14 @@ function ViewSinglePost() {
 			</div>
 
 			<p className="text-muted small mb-4">
-				<a to={`/profile/${post.author.username}`}>
+				<Link to={`/profile/${post.author.username}`}>
 					<img className="avatar-tiny" src={post.author.avatar} />
-				</a>
-				Posted by <a to={`/profile/${post.author.username}`}>{post.author.username}</a> on {dateFormatted}
+				</Link>
+				Posted by <Link to={`/profile/${post.author.username}`}>{post.author.username}</Link> on {dateFormatted}
 			</p>
 
 			<div className="body-content">
-				<ReactMarkdown children={post.body} />
+				<ReactMarkdown children={post.body} allowedElements={["p", "br", "strong", "em", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li"]} />
 			</div>
 		</Page>
 	);
