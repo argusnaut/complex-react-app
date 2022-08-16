@@ -23,6 +23,7 @@ import Profile from "./components/Profile";
 import EditPost from "./components/EditPost";
 import NotFound from "./components/NotFound";
 import Search from "./components/Search";
+import Chat from "./components/Chat";
 
 function Main() {
 	const initialState = {
@@ -34,6 +35,8 @@ function Main() {
 			avatar: localStorage.getItem("complexappAvatar"),
 		},
 		isSearchOpen: false,
+		isChatOpen: false,
+		unreadChatCount: 0,
 	};
 
 	function ourReducer(draft, action) {
@@ -41,19 +44,31 @@ function Main() {
 			case "login":
 				draft.loggedIn = true;
 				draft.user = action.data;
-				return;
+				break;
 			case "logout":
 				draft.loggedIn = false;
-				return;
+				break;
 			case "flashMessage":
 				draft.flashMessages.push(action.value);
-				return;
+				break;
 			case "openSearch":
 				draft.isSearchOpen = true;
-				return;
+				break;
 			case "closeSearch":
 				draft.isSearchOpen = false;
-				return;
+				break;
+			case "toggleChat":
+				draft.isChatOpen = !draft.isChatOpen;
+				break;
+			case "closeChat":
+				draft.isChatOpen = false;
+				break;
+			case "incrementUnreadChatCount":
+				draft.unreadChatCount++;
+				break;
+			case "clearUnreadChatCount":
+				draft.unreadChatCount = 0;
+				break;
 		}
 	}
 
@@ -90,6 +105,7 @@ function Main() {
 					<CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
 						<Search />
 					</CSSTransition>
+					<Chat />
 					<Footer />
 				</BrowserRouter>
 			</DispatchContext.Provider>

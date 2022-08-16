@@ -37,41 +37,41 @@ function EditPost(props) {
 				draft.title.value = action.value.title;
 				draft.body.value = action.value.body;
 				draft.isFetching = false;
-				return;
+				break;
 			case "titleChange":
 				draft.title.hasErrors = false;
 				draft.title.value = action.value;
-				return;
+				break;
 			case "bodyChange":
 				draft.body.hasErrors = false;
 				draft.body.value = action.value;
-				return;
+				break;
 			case "submitRequest":
 				if (!draft.title.hasErrors && !draft.body.hasErrors) {
 					draft.sendCount++;
 				}
-				return;
+				break;
 			case "saveRequestStarted":
 				draft.isSaving = true;
-				return;
+				break;
 			case "saveRequestFinished":
 				draft.isSaving = false;
-				return;
+				break;
 			case "titleRules":
 				if (!action.value.trim()) {
 					draft.title.hasErrors = true;
 					draft.title.message = "You must provide a title.";
 				}
-				return;
+				break;
 			case "bodyRules":
 				if (!action.value.trim()) {
 					draft.body.hasErrors = true;
 					draft.body.message = "You must provide body content.";
 				}
-				return;
+				break;
 			case "notFound":
 				draft.notFound = true;
-				return;
+				break;
 		}
 	}
 
