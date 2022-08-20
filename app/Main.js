@@ -1,12 +1,9 @@
-import React, {useState, useReducer, useEffect} from "react";
+import React, {useEffect, Suspense} from "react";
 import ReactDOM from "react-dom/client";
 import {useImmerReducer} from "use-immer";
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {CSSTransition} from "react-transition-group";
 import Axios from "axios";
-
-Axios.defaults.baseURL = "http://localhost:8080";
-
 import StateContext from "./StateContext";
 import DispatchContext from "./DispatchContext";
 
@@ -17,14 +14,18 @@ import Home from "./components/Home";
 import Footer from "./components/Footer";
 import About from "./components/About";
 import Terms from "./components/Terms";
-import CreatePost from "./components/CreatePost";
-import ViewSinglePost from "./components/ViewSinglePost";
 import FlashMessages from "./components/FlashMessages";
 import Profile from "./components/Profile";
 import EditPost from "./components/EditPost";
 import NotFound from "./components/NotFound";
-import Search from "./components/Search";
-import Chat from "./components/Chat";
+import LoadingDotsIcon from "./components/LoadingDotsIcon";
+
+const Chat = React.lazy(() => import("./components/Chat"));
+const CreatePost = React.lazy(() => import("./components/CreatePost"));
+const Search = React.lazy(() => import("./components/Search"));
+const ViewSinglePost = React.lazy(() => import("./components/ViewSinglePost"));
+
+Axios.defaults.baseURL = process.env.BACKENDURL || "";
 
 function Main() {
     const initialState = {
@@ -115,20 +116,28 @@ function Main() {
                 <BrowserRouter>
                     <FlashMessages messages={state.flashMessages}/>
                     <Header/>
-                    <Routes>
-                        <Route path="/profile/:username/*" element={<Profile/>}/>
-                        <Route path="/" element={state.loggedIn ? <Home/> : <HomeGuest/>}/>
-                        <Route path="/post/:id" element={<ViewSinglePost/>}/>
-                        <Route path="/post/:id/edit" element={<EditPost/>}/>
-                        <Route path="/create-post" element={<CreatePost/>}/>
-                        <Route path="/about-us" element={<About/>}/>
-                        <Route path="/terms" element={<Terms/>}/>
-                        <Route path="*" element={<NotFound/>}/>
-                    </Routes>
+                    <Suspense fallback={<LoadingDotsIcon/>}>
+                        <Routes>
+                            <Route path="/profile/:username/*" element={<Profile/>}/>
+                            <Route path="/" element={state.loggedIn ? <Home/> : <HomeGuest/>}/>
+                            <Route path="/post/:id" element={<ViewSinglePost/>}/>
+                            <Route path="/post/:id/edit" element={<EditPost/>}/>
+                            <Route path="/create-post" element={<CreatePost/>}/>
+                            <Route path="/about-us" element={<About/>}/>
+                            <Route path="/terms" element={<Terms/>}/>
+                            <Route path="*" element={<NotFound/>}/>
+                        </Routes>
+                    </Suspense>
                     <CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
-                        <Search/>
+                        <div className="search-overlay">
+                            <Suspense fallback={""}>
+                                <Search/>
+                            </Suspense>
+                        </div>
                     </CSSTransition>
-                    <Chat/>
+                    <Suspense fallback="">
+                        {state.loggedIn && <Chat/>}
+                    </Suspense>
                     <Footer/>
                 </BrowserRouter>
             </DispatchContext.Provider>
